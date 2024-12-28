@@ -80,8 +80,8 @@ def rename_category(tree:ttk.Treeview, item_id:str, category_name:str, vh:PSDVar
         new_name = new_name_entry.get()
         if new_name:
             try:
-                vh._check_double_name(new_name, parent_c=vh.get_Categories(_get_all_parents(tree, item_id))[-1])
-                api.rename_sub_c(vh, c_name, _get_all_parents(tree, item_id), new_name)
+                vh._check_double_name(new_name, parent_c=vh.get_Categories(get_all_parents(tree, item_id))[-1])
+                api.rename_sub_c(vh, c_name, get_all_parents(tree, item_id), new_name)
                 # Rename the item in the treeview
                 mark_unsaved()
                 tree.item(item_id, text=f"{new_name} ({c_mode}){'*' if c_visibility else ''}")
@@ -103,7 +103,7 @@ def reverse_visibility(tree:ttk.Treeview, item_id:str, category_name:str, vh:PSD
         print(f"Reverse visibility of {category_name}")
     c_name, c_mode, c_visibility = parse_category_name(category_name)
     try:
-        parents = _get_all_parents(tree, item_id)
+        parents = get_all_parents(tree, item_id)
         api.reverse_visibility(vh, c_name, parent_names=parents)
         # Change the item in the treeview
         parent_id = tree.parent(item_id)
@@ -121,6 +121,7 @@ def reverse_visibility(tree:ttk.Treeview, item_id:str, category_name:str, vh:PSD
 
 def create_menu(tree:ttk.Treeview, event:tk.Event, vh:PSDVarianceHandler):
     global current_menu
+    if DEBUG: print(f"Right-clicked at {event.x}, {event.y}")
     selected_item = tree.identify('item', event.x, event.y)
     tree.selection_set(selected_item)
     category_name = tree.item(selected_item, 'text')
@@ -152,7 +153,7 @@ def build_tree(tree:ttk.Treeview, parent:str, category:Category, display:bool):
                 display_name += '*'
             tree.insert(item_id, 'end', text=display_name)
 
-def _get_all_parents(tree:ttk.Treeview, item_id):
+def get_all_parents(tree:ttk.Treeview, item_id):
     parents = []
     parent_id = tree.parent(item_id)
     while parent_id:
@@ -166,8 +167,12 @@ def on_tree_double_click(event, tree:ttk.Treeview, vh:PSDVarianceHandler):
     item_id = tree.identify('item', event.x, event.y)
     if item_id:
         category_name = tree.item(item_id, 'text')
-        parent_names = _get_all_parents(tree, item_id)
+        parent_names = get_all_parents(tree, item_id)
+        parent_c_mode = parse_category_name(tree.item(tree.parent(item_id), 'text'))[1]
         if DEBUG: print(f"Double-clicked on: {category_name}, Parents: {parent_names}")
+        if parent_c_mode == 'all':
+            if DEBUG: print("Parent mode is 'all'. Forbidden to change.")
+            return
         reverse_visibility(tree, item_id, category_name, vh)
 #### 差分列表功能 END ####
 

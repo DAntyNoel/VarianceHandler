@@ -1,6 +1,6 @@
 from psd_tools import PSDImage
 from PIL import Image
-import json, copy
+import json, copy, os
 
 class VHError(Exception):
     pass
@@ -161,7 +161,8 @@ class PSDVarianceHandler:
             with open(config, 'r', encoding='utf-8') as f:
                 data:dict = json.load(f)
                 self.root = Category.from_dict(data['root'])
-                self.psd_path = data.get('psd_path')
+                path_list = data.get('psd_path')
+                self.psd_path:str = os.path.join(*path_list)
             self.psd = PSDImage.open(self.psd_path)
             self.layer_dict:dict[str, PSDImage] = {}
             self._index_layers(self.psd)
@@ -182,7 +183,7 @@ class PSDVarianceHandler:
         保存 PSD 配置
         """
         data = {
-            'psd_path': self.psd_path,
+            'psd_path': self.psd_path.split(os.sep),
             'root': self.root.to_dict(),
             '_layer_count': len(self.layer_dict.values()),
             '_layer_dict': {index: layer.name for index, layer in self.layer_dict.items()}
