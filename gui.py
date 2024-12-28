@@ -216,6 +216,25 @@ def save_image(canvas: tk.Canvas):
     if file_path:
         canvas.original_image.save(file_path)
         print(f"Image saved to {file_path}")
+
+def menu_button(tree:ttk.Treeview, vh:PSDVarianceHandler):
+    if DEBUG: print("Menu button clicked")
+    # 获取treeview中选中的项目
+    selected_item = tree.selection()
+    print(selected_item)
+    tree.selection_set(selected_item)
+    category_name = tree.item(selected_item, 'text')
+
+    current_menu = Menu(tree, tearoff=0)
+    if category_name:
+        current_menu.add_command(label=f"Information about {category_name}", command=lambda: print(f"Selected: {category_name}"))
+        current_menu.add_command(label=f"{'隐藏' if category_name.endswith('*') else '显示'} 图层/分类", command=lambda: reverse_visibility(tree, selected_item, category_name, vh))
+        current_menu.add_command(label=f"重命名…", command=lambda: rename_category(tree, selected_item, category_name, vh))
+        current_menu.add_separator()
+    current_menu.add_command(label="Option 1", command=lambda: print("Option 1 selected"))
+    current_menu.add_command(label="Option 2", command=lambda: print("Option 2 selected"))
+    # 显示在鼠标右键点击的位置
+    current_menu.post(root.winfo_pointerx(), root.winfo_pointery())
 #### GUI 顶部按钮功能 END ####
 
 def main(vh:PSDVarianceHandler):
@@ -227,8 +246,9 @@ def main(vh:PSDVarianceHandler):
 
     botton_frame = tk.Frame(root)
     botton_frame.pack(fill=tk.X, pady=10)
-    buttons = ['刷新', '预览', '保存', '退出']
+    buttons = ['菜单', '刷新', '预览', '保存', '退出']
     commands = [
+        lambda: menu_button(tree, vh),
         lambda: refresh_all(tree, canvas, root_category),
         lambda: show_image(canvas), 
         lambda: save_image(canvas), 
